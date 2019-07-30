@@ -109,7 +109,7 @@ def ephys_sample(file_dict):
     x = np.linspace(0,data['time'],y.size)
     fig,(ax1,ax2,ax3) = plt.subplots(nrows=3,ncols=1,sharey=True,sharex=False)
     midpoint = int(y.size/2)
-    ax1.plot(x[0:5000*5],y[0:5000*5],color='orange')
+    ax1.plot(x[5000*60:5000*65],y[5000*60:5000*65],color='orange')
     ax1.set_ylabel("Voltage, uA",fontsize=12)
     ax1.set_title("Start",fontsize=12)
     ax2.plot(x[midpoint:5000*5+midpoint],y[midpoint:5000*5+midpoint],color='orange')
