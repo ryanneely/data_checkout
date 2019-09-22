@@ -99,6 +99,31 @@ def sort_tdms(d):
     result['RC'] = [x for x in files if 'uA' in x or 'mA' in x]
     return result
 
+def search_files(path):
+    """
+    A function to print out a summary of the files present
+    in a data directory.
+    Args:
+        -path: the folder to search
+    Returns:
+        -prints summary to console
+    """
+    file_dict = sort_tdms(path)
+    print("Discovered {0} high-speed file(s):".format(len(file_dict['highspeed'])))
+    for i in file_dict['highspeed']:
+        print(" -"+os.path.basename(i))
+    print("Discovered {0} low-speed file(s):".format(len(file_dict['lowspeed'])))
+    for i in file_dict['lowspeed']:
+        print(" -"+os.path.basename(i))
+    print("Discovered {0} physiological monitor record(s):".format(len(file_dict['physio'])))
+    for i in file_dict['physio']:
+        print(" -"+os.path.basename(i))
+    print("Discovered {0} recruitment curve file(s)".format(len(file_dict['RC'])))
+    print("...")
+    print("...")
+    print("Loading TDMS files and generating sample plots...")
+    return file_dict
+
 def file_ids(tdms_file):
     """
     Function to get the group and channel IDs for a tdms file

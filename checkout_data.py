@@ -9,7 +9,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import os
-from tdms_files import sort_tdms
+from tdms_files import sort_tdms, search_files
 from bp_files import process_bp
 from physio_files import process_physio
 from ephys_files import process_ephys
@@ -17,31 +17,6 @@ import matplotlib.pyplot as plt
 import filtering as filt
 import multiprocessing as mp
 mp.freeze_support()
-
-def search_files(path):
-    """
-    A function to print out a summary of the files present
-    in a data directory.
-    Args:
-        -path: the folder to search
-    Returns:
-        -prints summary to console
-    """
-    file_dict = sort_tdms(path)
-    print("Discovered {0} high-speed file(s):".format(len(file_dict['highspeed'])))
-    for i in file_dict['highspeed']:
-        print(" -"+os.path.basename(i))
-    print("Discovered {0} low-speed file(s):".format(len(file_dict['lowspeed'])))
-    for i in file_dict['lowspeed']:
-        print(" -"+os.path.basename(i))
-    print("Discovered {0} physiological monitor record(s):".format(len(file_dict['physio'])))
-    for i in file_dict['physio']:
-        print(" -"+os.path.basename(i))
-    print("Discovered {0} recruitment curve file(s)".format(len(file_dict['RC'])))
-    print("...")
-    print("...")
-    print("Loading TDMS files and generating sample plots...")
-    return file_dict
 
 def bp_sample(file_dict):
     """
