@@ -47,4 +47,20 @@ def parse_meta_xml(f):
     for child in root:
         if 'String' in child.tag:
             mdata[child[0].text] = child[1].text
+    for child in root:
+        if 'Boolean' in child.tag:
+            mdata[child[0].text] = child[1].text
     return mdata
+
+def check_for_xml(d):
+    """
+    A function to look through an upper-level directory, containing
+    folders with experimental data, and then report which folders 
+    do NOT contain an XML file (assuming here that the presence
+    of an XML file equates with the presence of a metadata file)
+    Args:
+        -d: the path to the upper-level directory containing the experimental 
+        data folders
+    Returns:
+        -no_xml: list of folder paths that do not contain an xml file
+    """

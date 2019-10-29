@@ -119,9 +119,6 @@ def search_files(path):
     for i in file_dict['physio']:
         print(" -"+os.path.basename(i))
     print("Discovered {0} recruitment curve file(s)".format(len(file_dict['RC'])))
-    print("...")
-    print("...")
-    print("Loading TDMS files and generating sample plots...")
     return file_dict
 
 def file_ids(tdms_file):

@@ -99,6 +99,9 @@ def ephys_sample(file_dict):
 def create_plots():
     ##get the dictionary of files in this experiment folder
     file_dict = search_files(path)
+    print("...")
+    print("...")
+    print("Loading TDMS files and generating sample plots...")
     p1 = mp.Process(target=physio_sample,args=(file_dict,))
     p1.start()
     p2 = mp.Process(target=bp_sample,args=(file_dict,))
