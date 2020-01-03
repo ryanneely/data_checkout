@@ -29,7 +29,7 @@ def get_fname(d):
         ID = 'processed_data'
     elif len(xml_files) == 1:
         ##now go into the file and look for the experiment 
-        mdata = parse_meta_xml(xml_files[0])
+        mdata = parse_meta_xml(os.path.join(d,xml_files[0]))
         ID = mdata['Experiment ID']
     return ID
 
@@ -52,15 +52,26 @@ def parse_meta_xml(f):
             mdata[child[0].text] = child[1].text
     return mdata
 
-def check_for_xml(d):
+
+def match_folder(m,d):
     """
-    A function to look through an upper-level directory, containing
-    folders with experimental data, and then report which folders 
-    do NOT contain an XML file (assuming here that the presence
-    of an XML file equates with the presence of a metadata file)
+    A function to use the data file name in the metadata
+    to find the associated data folder in a directory
     Args:
-        -d: the path to the upper-level directory containing the experimental 
-        data folders
-    Returns:
-        -no_xml: list of folder paths that do not contain an xml file
+        -m: metadata file to use
+        -d: directory to look in for matched file
+    returns:
+        -f: path to the folder match for the metadata, or None if none is found
     """
+    m = parse_meta_xml(m)
+    experiment_id = m['Experiment ID']
+    folders = os.listdir(d)
+    try:
+        folder_idx = folders.index(experiment_id)
+        folder_path = os.path.join(d,folders[folder_idx])
+    except ValueError:
+        print("Can't find a folder match for {}".format(experiment_id))
+        folder_path = None
+    return folder_path
+
+
