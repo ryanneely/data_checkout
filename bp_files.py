@@ -59,7 +59,7 @@ def process_bp(files,resample=False,load_time=True):
     dsets = {}
     tdms = load_bp_mp(files,resample,load_time)
     for chan in bp_chans:
-        dsets[chan] = np.hstack([x[chan] for x in tdms])
+        dsets[chan] = np.hstack([x[chan] for x in tdms])*100.0 ##convert to mmHg
     if load_time:
         times = [x['time'] for x in tdms]
         dsets['time'] = np.sum(times)
