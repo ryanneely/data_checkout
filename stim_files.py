@@ -138,7 +138,10 @@ def load_stim(path,offset=0):
     try:
         channel_object = tdms_file.object('Group Name',stim_chan)
     except KeyError:
-        channel_object = tdms_file.object('ephys',stim_chan)
+        try:
+            channel_object = tdms_file.object('ephys',stim_chan)
+        except KeyError:
+            channel_object = tdms_file.object('Untitled',stim_chan)
     raw = channel_object.data
     fs = 1/channel_object.properties['wf_increment']
     ##process the stim output (guessing on parameters here)
