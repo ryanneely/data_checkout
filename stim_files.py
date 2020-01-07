@@ -149,3 +149,7 @@ def load_stim(path,offset=0):
     start = start+offset
     stop = stop+offset
     return start,stop,z,fs
+
+    ##TODO: figure out a better way to find the stim onset/offset block time.
+    ##loading the full stim start/stop/z data is resource intensive and takes a long
+    #time.
