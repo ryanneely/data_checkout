@@ -25,6 +25,26 @@ def get_period(files):
     global stim_chan
     ##make sure that the files are in the correct order
     files = order_files(files)
+    start = 0
+    stop = 0
+    for path in files:
+        tdms_file = nptdms.TdmsFile(path)
+        ##here are a couple diffent possibilities for how things could be named
+        try:
+            channel_object = tdms_file.object('Group Name',stim_chan)
+        except KeyError:
+            try:
+                channel_object = tdms_file.object('ephys',stim_chan)
+            except KeyError:
+                channel_object = tdms_file.object('Untitled',stim_chan)
+        start,stop = find_stim(channel_object)
+        """
+        TODO: figure out how to end this. Basically the first time start isn't None, 
+        you want to keep that as the start forever. But stop should change every time
+        it isn't None, because you're moving down the list. Also, if start and stop are
+        already defined, you want to stop looking if you come across the next file and there
+        isn't any start and stop.
+        """
 
 
 def find_stim(channel_object,thresh=0.1,min_dist=50,min_pulses=30):
