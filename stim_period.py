@@ -25,9 +25,12 @@ def get_period(files):
     global stim_chan
     ##make sure that the files are in the correct order
     files = order_files(files)
-    start = 0
-    stop = 0
-    for path in files:
+    start = None
+    stop = None
+    files = iter(files)
+    ##this will churn through the files until a start value is found
+    while start == None:
+        path = next(files)
         tdms_file = nptdms.TdmsFile(path)
         ##here are a couple diffent possibilities for how things could be named
         try:
@@ -38,14 +41,27 @@ def get_period(files):
             except KeyError:
                 channel_object = tdms_file.object('Untitled',stim_chan)
         start,stop = find_stim(channel_object)
-        """
-        TODO: figure out how to end this. Basically the first time start isn't None, 
-        you want to keep that as the start forever. But stop should change every time
-        it isn't None, because you're moving down the list. Also, if start and stop are
-        already defined, you want to stop looking if you come across the next file and there
-        isn't any start and stop.
-        """
-
+    ##now we'll keep going until there aren't any stim pulses detected
+    end = stop ##start by storing 'stop' in a new var, so we don't overwrite 'stop' in the event
+    ##that all of the stim data is in the first file
+    while end != None:
+        ##if end is not None, we must have found a continuation of the stim block in the previous file,
+        ##so update 'stop' to reflect this
+        stop = end
+        path = next(files)
+        tdms_file = nptdms.TdmsFile(path)
+        ##here are a couple diffent possibilities for how things could be named
+        try:
+            channel_object = tdms_file.object('Group Name',stim_chan)
+        except KeyError:
+            try:
+                channel_object = tdms_file.object('ephys',stim_chan)
+            except KeyError:
+                channel_object = tdms_file.object('Untitled',stim_chan)
+        ##here we want to ignore any new values of start, because the start value we found in 
+        ##an earlier file should be the true start
+        ignore,end = find_stim(channel_object)
+    return start,stop
 
 def find_stim(channel_object,thresh=0.1,min_dist=50,min_pulses=30):
     """
