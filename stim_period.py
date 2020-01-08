@@ -41,15 +41,19 @@ def get_period(files):
                 channel_object = tdms_file.object('ephys',stim_chan)
             except KeyError:
                 channel_object = tdms_file.object('Untitled',stim_chan)
-        start,stop = find_stim(channel_object)
+        start,end = find_stim(channel_object)
+        if start != None:
+            print("Found the start")
+            stop = end
+    print("Moving on to the end detection")
     ##now we'll keep going until there aren't any stim pulses detected
-    end = stop ##start by storing 'stop' in a new var, so we don't overwrite 'stop' in the event
     ##that all of the stim data is in the first file
     while end != None:
         ##if end is not None, we must have found a continuation of the stim block in the previous file,
         ##so update 'stop' to reflect this
         stop = end
         path = next(files)
+        print("Loading {}".format(path))
         tdms_file = nptdms.TdmsFile(path)
         ##here are a couple diffent possibilities for how things could be named
         try:
