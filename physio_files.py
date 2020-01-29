@@ -1,7 +1,7 @@
 ##physio_files.py
 
 ##functions for processing the physiological monitor data
-##produced by the SomnoSuite and streamed over serial port 
+##produced by the SomnoSuite and streamed over serial port
 ##into labview TDMS format.
 
 #by Ryan Neely 6/10/19
@@ -31,7 +31,7 @@ def save_physio(files,path_out=None,resample=False,load_time=True):
         -path_out: optional alternative path to save the data file. If
             not specified, file is saved in same location as input files.
         -resample: if a number, will resample at "resample" hz
-        -load_time: if True, loads duration of the recording in seconds       
+        -load_time: if True, loads duration of the recording in seconds
     Returns:
         None; data saved in specified location
     """
@@ -57,7 +57,7 @@ def save_physio(files,path_out=None,resample=False,load_time=True):
 
 def process_physio(files,resample=False,load_time=True):
     """
-    A function to load the contents of all physio monitor 
+    A function to load the contents of all physio monitor
     files from one experiment folder into memory
     Args:
         -files: list of files to load/concatinate
@@ -67,7 +67,7 @@ def process_physio(files,resample=False,load_time=True):
         -dsets: full concatinated data sets
     """
     global serial_chans
-    ##order the files 
+    ##order the files
     files = order_files(files)
     tdms = []
     dsets = {}
@@ -81,6 +81,45 @@ def process_physio(files,resample=False,load_time=True):
         times = [x['time'] for x in tdms]
         dsets['time'] = np.sum(times)
     return dsets
+
+def process_physio2(files, resample=False, load_time=True, hd5_output_name=None):
+    """
+    A function to load the contents of all physio monitor
+    files from one experiment folder into memory
+    Args:
+        -files: list of files to load/concatinate
+        -resample: if a number, will resample at "resample" hz
+        -load_time: if True, loads the duration of the recording in seconds
+    Returns:
+        -dsets: full concatinated data sets
+
+    Note: In this version, we added the possibilities to save the physio files
+    after processing it, if the 'hd5_output_name' is specified.
+    """
+    global serial_chans
+    ##order the files
+    files = order_files(files)
+    tdms = []
+    dsets = {}
+    for f in files:
+        print("loading "+f)
+        data = load_physio(f,resample,load_time)
+        tdms.append(data)
+    for chan in serial_chans.values():
+        dsets[chan] = np.hstack([x[chan] for x in tdms])
+    if load_time:
+        times = [x['time'] for x in tdms]
+        dsets['time'] = np.sum(times)
+
+    if hd5_output_name is not None:
+        f_out = h5py.File(hd5_output_name,'w')
+        for chan in serial_chans.values():
+            f_out.create_dataset(chan, data=np.hstack([x[chan] for x in tdms]))
+        if load_time:
+            f_out.create_dataset("time",data=np.asarray(np.sum(times)))
+        f_out.close()
+    return dsets
+
 
 def load_physio(path,resample=False,load_time=True):
     """

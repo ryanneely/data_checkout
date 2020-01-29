@@ -1,6 +1,6 @@
 ##ephys_files.py
 
-##functions to parse/process/save ephys data from 
+##functions to parse/process/save ephys data from
 ##TDMS files saved in Labview
 
 ##by Ryan Neely 6/10/19
@@ -17,7 +17,7 @@ def get_ephys_chans(tdms_file):
     Function to look for ephys channel names in a tdms file.
     Returns a list of assumed ephys channel names that are present.
     In addition to the fact that some ephys channels are saved under different
-    names, there could also be a variable number of channels in the file. 
+    names, there could also be a variable number of channels in the file.
     Inputs:
         -tdms_file: nptdms file object
     Returns:
@@ -63,7 +63,7 @@ def save_ephys(files,path_out=None,resample=False,load_time=True):
 
 def process_ephys(files,resample=False,load_time=True):
     """
-    A function to load the contents of all bp monitor 
+    A function to load the contents of all bp monitor
     files from one experiment folder into memory
     Args:
         -files: list of files to load/concatinate
@@ -84,11 +84,48 @@ def process_ephys(files,resample=False,load_time=True):
         dsets['time'] = np.sum(times)
     return dsets
 
+def process_ephys2(files, resample=False, load_time=True, hd5_output_name=None):
+    """
+    A function to load the contents of all bp monitor
+    files from one experiment folder into memory
+    Args:
+        -files: list of files to load/concatinate
+        -resample: if a number, resamples to 'resample' Hz
+        -load_time: if True, loads the duration of the recording in seconds
+    Returns:
+        -dsets: full concatinated data sets
+
+    Note: In this version, we added the possibilities to save the ephys files
+    after processing it, if the 'hd5_output_name' is specified.
+    """
+    files = order_files(files)
+    dsets = {}
+    tdms = load_ephys_mp(files,resample,load_time)
+    ##extract the channel names from the last dataset processed
+    ephys_chans = [x for x in list(tdms[0]) if x != 'time']
+    for i,chan in enumerate(ephys_chans):
+        dsets["amp_"+str(i)] = np.hstack([x[chan] for x in tdms])
+    if load_time:
+        times = [x['time'] for x in tdms]
+        dsets['time'] = np.sum(times)
+
+    if hd5_output_name is not None:
+        f_out = h5py.File(hd5_output_name, 'w')
+        for i,chan in enumerate(ephys_chans):
+            f_out.create_dataset("amp_" + str(i), data=np.hstack([x[chan] for x in tdms]))
+        if load_time:
+            f_out.create_dataset("time", data=np.asarray(np.sum(times)))
+        f_out.close()
+
+    return dsets
+
+
+
 def load_ephys(path,resample=False,load_time=True,index=0):
     """
-    A function to load data from ephys files, and 
+    A function to load data from ephys files, and
     resample them to a lower rate if necessary
-    Args: 
+    Args:
         -path: full path to the datafile
         -resample: if False, loads the full dataset. If a number is given,
             it will resample the data to roughly that sample rate (in Hz)
@@ -120,12 +157,12 @@ def load_ephys(path,resample=False,load_time=True,index=0):
 def load_ephys_mp(paths,resample=False,load_time=True):
     """
     Function to distribute the loading of multiple files
-    across multiple cores. 
+    across multiple cores.
     Args:
         -paths: ordered list of file paths where data is stored
         -resample: if a number, resamples the data to 'resample' Hz
         -load_time: if True, includes the duration of the recording in seconds
-    Returns:    
+    Returns:
         -dsets: ordered list of data dictionaries containing the files
     """
     ##create the argument lists for each version of the function
@@ -144,15 +181,15 @@ def load_ephys_mp(paths,resample=False,load_time=True):
 
 def load_ephys2(paths):
     """
-    TODO: create a function to load these files that doesn't take up so much memory. 
+    TODO: create a function to load these files that doesn't take up so much memory.
 
     What is the most efficient way of doing this? Right now memory and transfer speeds from disk
     are the biggest bottleneck. I want to avoid having a lot of data arrays present in memory all at
     once. It may be possible to split this across multiple cores, but it needs to be done in a way
-    that doesn't involve operating and loading many different files/arrays at once. 
+    that doesn't involve operating and loading many different files/arrays at once.
 
     The problem for a single data array is this:
-    -load the entire TDMS file into memory. This is unavoidable, but each file is only ~600MB or so. 
+    -load the entire TDMS file into memory. This is unavoidable, but each file is only ~600MB or so.
     -grab the data array corresponding to one signal
     -repeat for each file until we have each piece of the data arrays, which are then concatenated into one
     -repeat this whole process for each signal
@@ -166,5 +203,3 @@ def load_ephys2(paths):
     (note: check the pagefile loading options in nptdms)
 
     """
-    
-    

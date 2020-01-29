@@ -42,9 +42,44 @@ def save_bp(files,path_out=None,resample=False,load_time=True):
         f_out.create_dataset("time",data=np.asarray(np.sum(times)))
     f_out.close()
 
+def save_bp2(files, path_out=None, resample=False, load_time=True):
+    """
+    Function to create hdf5 file from bp monitor data.
+    Args:
+        -files: iterable of physio monitor file paths from one experiment (TDMS files)
+        -path_out: optional alternative path to save the data file. If
+            not specified, file is saved in same location as input files.
+        -resample: if a number, resamples to 'resample' Hz
+        -load_time: if True, loads the duration of the recording in seconds
+    Returns:
+        None; data saved in specified location
+
+    Note: On this version, change of the save path, and add a
+    frequency sampling in the dataset.
+    Saving in hd5 should be added in process_bp in the next version.
+    """
+    global bp_chans
+    ##order the files
+    files = order_files(files)
+    ##create the output data file
+    if path_out == None:
+        path_out = os.path.join(os.path.dirname(files[0]),'bp.hdf5')
+    f_out = h5py.File(path_out,'a')
+    dsets = load_bp_mp(files, resample, load_time)
+    for chan in bp_chans:
+        f_out.create_dataset(chan, data=np.hstack([x[chan] for x in dsets]))
+    if load_time:
+        times = [x['time'] for x in dsets]
+        time_bp = np.asarray(np.sum(times))
+        f_out.create_dataset("time_bp", data=time_bp)
+        f_out.create_dataset("fs_bp", data=len(f_out[chan]) / time_bp)
+    f_out.close()
+
+
+
 def process_bp(files,resample=False,load_time=True):
     """
-    A function to load the contents of all bp monitor 
+    A function to load the contents of all bp monitor
     files from one experiment folder into memory
     Args:
         -files: list of files to load/concatinate
@@ -67,9 +102,9 @@ def process_bp(files,resample=False,load_time=True):
 
 def load_bp(path,resample=False,load_time=True,index=0):
     """
-    A function to load data from blood pressure monitors, and 
+    A function to load data from blood pressure monitors, and
     resample them to a lower rate if necessary
-    Args: 
+    Args:
         -path: full path to the datafile
         -resample: if False, loads the full dataset. If a number is given,
             it will resample the data to roughly that sample rate (in Hz)
@@ -95,12 +130,12 @@ def load_bp(path,resample=False,load_time=True,index=0):
 def load_bp_mp(paths,resample=False,load_time=True):
     """
     Function to distribute the loading of multiple files
-    across multiple cores. 
+    across multiple cores.
     Args:
         -paths: ordered list of file paths where data is stored
         -resample: if a number, resamples the data to 'resample' Hz
         -load_time: if True, includes the duration of the recording in seconds
-    Returns:    
+    Returns:
         -dsets: ordered list of data dictionaries containing the files
     """
     ##create the argument lists for each version of the function
